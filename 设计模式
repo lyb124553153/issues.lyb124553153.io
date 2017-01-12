@@ -1,0 +1,269 @@
+#单例
+
+单例模式的核心思想是让指定的类只存在唯一一个实例。这意味着当你第二次使用相同的类去创建对象的时候，你得到的应该和第一次创建的是同一个对象。
+```js
+var obj1 = {name:'OBJ'}
+var obj2 = {name:'OBJ'}
+obj1 === obj2; // false
+obj1 == obj2; // false
+
+
+```
+在JavaScript中，对象永远不会相等，除非它们是同一个对象，所以即使你创建一个看起来完全一样的对象，它也不会和前面的对象相等：
+
+>你可以说当你每次使用对象字面量创建一个对象的时候就是在创建一个单例，并没有特别的语法迁涉进来。
+
+
+##使用NEW
+
+JavaScript没有类，所以一字一句地说单例的定义并没有什么意义。
+但是JavaScript有使用new、通过构造函数来创建对象的语法，有时候你可能需要这种语法下的一个单例实现。
+这也就是说当你使用new、通过同一个构造函数来创建多个对象的时候，你应该只是得到同一个对象的不同引用。
+
+
+当对象实例被创建时，你需要在构造函数中缓存它，以便在第二次调用的时候返回。有几种选择可以达到这种效果：
+
+    你可以使用一个全局变量来存储实例。不推荐使用这种方法，因为通常我们认为使用全局变量是不好的。而且，任何人都可以改写全局变量的值，甚至可能是无意中改写。所以我们不再讨论这种方案。
+    你也可以将对象实例缓存在构造函数的属性中。在JavaScript中，函数也是对象，所以它们也可以有属性。你可以写一些类似Universe.instance的属性来缓存对象。这是一种漂亮干净的解决方案，不足之处是instance属性仍然是可以被公开访问的，别人写的代码可能修改它，这样就会失去这个实例。
+    你可以将实例包裹在闭包中。这可以保持实例是私有的，不会在构造函数之外被修改，代价是一个额外的闭包。
+
+###将实例放到静态属性中
+
+下面是一个将唯一的实例放入Universe构造函数的一个静态属性中的例子：
+
+
+```js
+function SingleObj(){
+    if (typeof  SingleObj.instance === "Object"){
+        return SingleObj.instance
+    }
+    
+    this.name = "Single"
+    this.live = "now"    
+    
+    SingleObj.instance = this
+}
+
+var obj0 = new SingleObj();
+var obj1 = new SingleObj();
+obj0 === obj1;
+
+```
+### 将实例放在闭包中
+
+```js
+function SingleObj() {
+  var instance = this ;
+    this.name = "Single"
+     this.live = "now" 
+   SingleObj = function () {
+          return instance;
+      };
+  
+}
+var sin1 = new SingleObj();
+var sin2 = new SingleObj();
+sin1 === sin2;
+
+```
+这种模式的缺点是被重写的函数（SingleObj()）将丢失那些在初始定义和重新定义之间添加的属性。在这个例子中，任何添加到SingleObj()的原型上的属性将不会被链接到使用原来的实现创建的实例上。
+
+
+```js
+SingleObj.prototype.hasProto = true
+
+var sin0 = new SingleObj();
+
+SingleObj.prototype.hasSomething = true ;
+
+
+var sin1 = new Universe();
+
+sin0.hasProto;//true
+sin1.hasProto;//true
+sin0.hasSomething;// undefined
+sin1.hasSomething;// undefined
+sin0.constructor.name //
+
+
+sin0.constructor === SingleObj; // false
+```
+sin0.constructor 仍然指向原来的构造函数，而不是被重新定义的函数。
+
+通过重写SingleObj是prototype和constructor的指向像我们期望的
+```js
+function SingleObj() {
+  var instance = this ;
+   SingleObj = function () {
+            return instance;
+        };
+        SingleObj.prototype = this ;        
+        instance = new SingleObj();
+        instance.constructor = SingleObj
+        
+        
+    this.name = "Single"
+     this.live = "now" 
+    
+    
+    return instance 
+  
+}
+
+```
+输出一切正常
+```js
+
+
+
+SingleObj.prototype.hasProto = true
+
+var sin0 = new SingleObj();
+
+SingleObj.prototype.hasSomething = true ;
+
+
+var sin1 = new SingleObj();
+
+sin0.hasProto;//true
+sin1.hasProto;//true
+sin0.hasSomething;// true
+sin1.hasSomething;// true
+sin0.constructor.name // SingleObj
+sin0.constructor === SingleObj; // false
+
+```
+
+
+可选结局方案
+将构造函数和实例包在一个立即执行的函数中。当构造函数第一次被调用的时候，它返回一个对象并且将私有的instance指向它。
+在后续调用时，构造函数只是简单地返回这个私有变量。在这种新的实现下，前面所有的测试代码也会和期望的一样：
+```js
+var SingleObj
+(function(){
+    var instance ;
+    SingleObj = function SingleObj(){
+        if (instance ){
+            return instance
+        }
+        
+        instance = this ;
+        this.name ="Single"
+        this.runtime = "now"
+        //....        
+    }
+}())
+
+```
+#工厂模式
+
+<ul><li>执行在建立相似的对象时进行的一些重复操作</li><li>让工厂的使用者在编译阶段创建对象时不必知道它的特定类型（类）</li></ul>
+
+使用工厂方法（或类）创建的对象被设计为从同一个父对象继承；它们是特定的实现一些特殊功能的子类。有些时候这个共同的父对象就是包含工厂方法的同一个类
+我们来看一个示例实现，我们有：
+一个共共同的父构造函数 programer。有一个Write()方法来创建program对象。
+
+```js
+var code0 = programer.Write("js")
+//用一个方法在运行是接受一个字符串，用他创建并放回了一个和请求类型一样的对象
+var code1 = programer.Write("css")
+//没有使用new的构造函数，也没有看到任何对象字面量，仅仅只有一个函数根据一个字符串指定的类型创建了对象。
+var code2 = programer.Write("html")
+code0.run()
+code1.run()
+code2.run()
+```
+
+programer的实例实现
+```js
+function programer(){}
+programer.prototype.run = function() {
+  return "this is" +this.name+ "code"
+}
+
+programer.Write = function(type) {
+  var canDo = type,
+  
+   program;
+   
+   if( typeof programer[canDo] !== 'function'){
+       throw{
+           name:"Error",
+           message:"can't Write"+ canDo
+       }
+   }
+   
+   if (typeof  programer[canDo].prototype.run !== 'function'){
+       programer[canDo].prototype = new programer();
+    }
+    
+    program = new programer[canDo]()
+    return program
+}
+
+programer.js = function() {
+  this.name = "javascript"
+}
+
+
+programer.css = function() {
+  this.name = "css"
+}
+
+programer.html = function() {
+  this.name = "html"
+}
+```
+##内置工厂
+内置的全局构造函数Object()。它的行为很像工厂，因为它根据不同的输入创建不同的对象。如果传入一个数字，它会使用Number()构造函数创建一个对象。在传入字符串和布尔值的时候也会发生同样的事情。任何其它的值（包括空值）将会创建一个正常的对象。
+```js
+
+var o = new Object(),
+    n = new Object(1),
+    s = Object('1'),
+    b = Object(true);
+
+// test
+o.constructor === Object; // true
+n.constructor === Number; // true
+s.constructor === String; // true
+b.constructor === Boolean; // true
+```
+
+#迭代器
+
+
+在迭代器模式中，你有一些含有有序聚合数据的对象。这些数据可能在内部用一种复杂的结构存储着，但是你希望提供一种简单的方法来访问这种结构中的每个元素。数据的使用者不需要知道你是怎样组织你的数据的，他们只需要操作一个个独立的元素。
+
+在迭代器模式中，你的对象需要提供一个next()方法。按顺序调用next()方法必须返回序列中的下一个元素，但是“下一个”在你的特定的数据结构中指什么是由你自己来决定的。
+在迭代器模式中，聚合对象通常也会提供一个方便的方法hasNext()，这样对象的使用者就可以知道他们已经获取到你数据的最后一个元素。当使用另一种方法——hasNext()——来按顺序访问所有元素时，是像这样的：
+
+while (agg.hasNext()) {
+    // do something with the next element...
+    console.log(agg.next());
+}
+通过提供API来实现复杂的自定义数据结构中的遍历和导航。
+#装饰器
+
+在装饰器模式中，一些额外的功能可以在运行时被动态地添加到一个对象中。在运行时通过从预先定义好的装饰器对象来给被装饰对象动态添加功能。
+
+
+#策略模式
+ 
+ 保持接口一致的情况下选择最好的策略来完成特写类型的任务。
+ 
+#外观模式
+ 
+ 通过包装通用的（或者设计得很差的）方法来提供一个更方便的API。
+ 
+#代理模式
+ 
+ 包装一个对象以控制对它的访问，通过合并操作或者是只在真正需要时执行来尽量避免开销太大的操作。
+ 
+#中介者模式
+ 
+ 通过让对象不彼此沟通，只通过一个中介者对象沟通的方法来促进解耦。
+ 
+#观察者模式
+ 
+ 通过创建“可被观察的对象”使它在某个事件发生时通知订阅者的方式来解耦。（也叫“订阅者/发布者”或者“自定义事件”。）

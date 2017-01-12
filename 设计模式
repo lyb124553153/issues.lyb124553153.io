@@ -123,7 +123,7 @@ var sin0 = new SingleObj();
 SingleObj.prototype.hasSomething = true ;
 
 
-var sin1 = new Universe();
+var sin1 = new SingleObj();
 
 sin0.hasProto;//true
 sin1.hasProto;//true
@@ -154,8 +154,116 @@ var SingleObj
     }
 }())
 
+```
+#工厂模式
 
+<ul><li>执行在建立相似的对象时进行的一些重复操作</li><li>让工厂的使用者在编译阶段创建对象时不必知道它的特定类型（类）</li></ul>
 
+使用工厂方法（或类）创建的对象被设计为从同一个父对象继承；它们是特定的实现一些特殊功能的子类。有些时候这个共同的父对象就是包含工厂方法的同一个类
+我们来看一个示例实现，我们有：
+一个共共同的父构造函数 programer。有一个Write()方法来创建program对象。
+
+```js
+var code0 = programer.Write("js")
+//用一个方法在运行是接受一个字符串，用他创建并放回了一个和请求类型一样的对象
+var code1 = programer.Write("css")
+//没有使用new的构造函数，也没有看到任何对象字面量，仅仅只有一个函数根据一个字符串指定的类型创建了对象。
+var code2 = programer.Write("html")
+code0.run()
+code1.run()
+code2.run()
 ```
 
+programer的实例实现
+```js
+function programer(){}
+programer.prototype.run = function() {
+  return "this is" +this.name+ "code"
+}
 
+programer.Write = function(type) {
+  var canDo = type,
+  
+   program;
+   
+   if( typeof programer[canDo] !== 'function'){
+       throw{
+           name:"Error",
+           message:"can't Write"+ canDo
+       }
+   }
+   
+   if (typeof  programer[canDo].prototype.run !== 'function'){
+       programer[canDo].prototype = new programer();
+    }
+    
+    program = new programer[canDo]()
+    return program
+}
+
+programer.js = function() {
+  this.name = "javascript"
+}
+
+
+programer.css = function() {
+  this.name = "css"
+}
+
+programer.html = function() {
+  this.name = "html"
+}
+```
+##内置工厂
+内置的全局构造函数Object()。它的行为很像工厂，因为它根据不同的输入创建不同的对象。如果传入一个数字，它会使用Number()构造函数创建一个对象。在传入字符串和布尔值的时候也会发生同样的事情。任何其它的值（包括空值）将会创建一个正常的对象。
+```js
+
+var o = new Object(),
+    n = new Object(1),
+    s = Object('1'),
+    b = Object(true);
+
+// test
+o.constructor === Object; // true
+n.constructor === Number; // true
+s.constructor === String; // true
+b.constructor === Boolean; // true
+```
+
+#迭代器
+
+
+在迭代器模式中，你有一些含有有序聚合数据的对象。这些数据可能在内部用一种复杂的结构存储着，但是你希望提供一种简单的方法来访问这种结构中的每个元素。数据的使用者不需要知道你是怎样组织你的数据的，他们只需要操作一个个独立的元素。
+
+在迭代器模式中，你的对象需要提供一个next()方法。按顺序调用next()方法必须返回序列中的下一个元素，但是“下一个”在你的特定的数据结构中指什么是由你自己来决定的。
+在迭代器模式中，聚合对象通常也会提供一个方便的方法hasNext()，这样对象的使用者就可以知道他们已经获取到你数据的最后一个元素。当使用另一种方法——hasNext()——来按顺序访问所有元素时，是像这样的：
+
+while (agg.hasNext()) {
+    // do something with the next element...
+    console.log(agg.next());
+}
+通过提供API来实现复杂的自定义数据结构中的遍历和导航。
+#装饰器
+
+在装饰器模式中，一些额外的功能可以在运行时被动态地添加到一个对象中。在运行时通过从预先定义好的装饰器对象来给被装饰对象动态添加功能。
+
+
+#策略模式
+ 
+ 保持接口一致的情况下选择最好的策略来完成特写类型的任务。
+ 
+#外观模式
+ 
+ 通过包装通用的（或者设计得很差的）方法来提供一个更方便的API。
+ 
+#代理模式
+ 
+ 包装一个对象以控制对它的访问，通过合并操作或者是只在真正需要时执行来尽量避免开销太大的操作。
+ 
+#中介者模式
+ 
+ 通过让对象不彼此沟通，只通过一个中介者对象沟通的方法来促进解耦。
+ 
+#观察者模式
+ 
+ 通过创建“可被观察的对象”使它在某个事件发生时通知订阅者的方式来解耦。（也叫“订阅者/发布者”或者“自定义事件”。）

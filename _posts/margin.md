@@ -14,7 +14,7 @@ margin  百分比
 当然，它不会这么简单，和上篇文章 keyword auto 一样，这只发生在默认的 writing-mode: horizontal-tb; 和 direction: ltr; 的情况
 
 当margin数值为百分比的时候 margin取值为
-
+    
 
 视觉伪等高：两个并排的快级元素
 可以使用

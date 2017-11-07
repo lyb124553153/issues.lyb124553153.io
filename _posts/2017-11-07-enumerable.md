@@ -57,37 +57,33 @@ none？是否没有元素满足条件
 Calls <em>block</em> with two arguments, the item and its index,
  for each item in <i>enum</i>.  Given arguments are passed through
  to #each().
-```
+```ruby
 hash = Hash.new
 %w(cat dog wombat).each_with_index { |item, index|
   hash[item] = index
 }
 hash   #=> {"cat"=>0, "dog"=>1, "wombat"=>2}
 ```
+
 ### each_with_index
 each_with_object does not work on immutable objects like integer.
-```
+
+```ruby
 (1..3).each_with_object(0) {|i,sum| sum += i} #=> 0
 ```
 This is because each_with_object iterates over a collection, passing each element and the given object to the block. It does not update the value of object after each iteration and returns the original given object.
 
 It would work with a hash since changing value of a hash key changes it for original object by itself.
-```
+```ruby
 (1..3).each_with_object({:sum => 0}) {|i,hsh| hsh[:sum] += i}
 #=> {:sum => 6}
 ```
 String objects are interesting case. They are mutable so you might expect the following to return "abc"
-```
+```ruby
 ("a".."c").each_with_object("") {|i,str| str += i} # => ""
 ```
 but it does not. This is because str += "a" returns a new object and the original object stays the same. However if we do
-```
+```ruby
 ("a".."c").each_with_object("") {|i,str| str << i} # => "abc"
 ```
 it works because str << "a" modifies the original object.
-
-```
-(1..3).inject(0) {|sum,i| sum += i} #=> 6
-# or
-(1..3).inject(:+) #=> 6
-```

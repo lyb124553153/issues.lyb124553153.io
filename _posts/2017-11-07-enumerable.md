@@ -1,6 +1,6 @@
 ---
 layout: default.html
-title: 日期操作
+title: 可枚举类型
 date: 2017-11-7
 ---
 
